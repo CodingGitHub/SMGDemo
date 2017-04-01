@@ -6,14 +6,17 @@ Created on 2017年3月30日
 
 
 import requests
-import json
+# import json
 import MySQLdb
 from person import Person
 
-
+#数据解析类
 class Parse:
     conn = None
     cur = None
+    regionString = None
+    organizeString = None
+    PTag = None
     def createConnection(self,host='120.27.27.83',user='media_demo_user',passwd='6yhnMJU&',db='media_demo',port=20002):
         try:
             self.conn = MySQLdb.connect(host,user,passwd,db,port)
@@ -42,13 +45,6 @@ class Parse:
         for d in jsn['data']:
 #             print(d['data_json'])
             peopleInfoJson = eval(d['data_json'])
-#             print(peopleInfoJson.keys())
-#             with open('people.txt','a+',encoding = 'utf-8') as f:
-#                 for key in peopleInfoJson.keys():
-#                     f.write(key + ':')
-#                     f.write('\t')
-#                     f.write(str(peopleInfoJson[key]) + '\n')
-#                 f.write('\n\n\n\n')
             yield peopleInfoJson
     
     
@@ -128,16 +124,45 @@ class Parse:
             
         dao = Dao()
         dao.insert('t_person', person, self.cur,self.conn)
-            
+
+    #读地域字典
+    def readRegiondict(self):       
+        with open('region.txt','r',encoding = 'utf-8') as f:
+            self.regionString = f.read()
+        #print(self.regionString)
+        
+    #读组织机构字典
+    def readOrganizedict(self):
+        with open('organize.txt','r',encoding = 'utf-8') as e:
+            self.organizeString = []
+            str = e.readline()
+            while str:
+                self.organizeString.append(str)
+                str = e.readline()
     
-    
-    #1:人物；2：地域；3：机构    
+    #返回数据： 1:人物；2：地域；3：机构    None:其他
     def getEntityType(self,entityName,entityTag):
-        pass
+        if not self.regionString:
+            self.readRegiondict()
+        
+        if not self.organizeString:
+            self.readOrganizedict()
+        
+        entityNT = entityName + entityTag
+        PTag = '人物'
+        if entityName in self.regionString:
+            return 2 
+        for ora in self.organizeString:
+            if (ora.strip() in entityNT):#strip()去除换行符
+                return 3
+        if PTag in entityTag:
+            return 1
+        else:
+            return None
 
-
-
+#数据库操作类
 class Dao():
+    #实现向数据库中people表中插入数据，并返回插入对象在数据库中的ID
     def insert(self,tableName,person,cur,conn):
         str = 'INSERT INTO %s(Name,URL,Introduction,BasicInfo,Catalog,Reference,Tag,ImageUrl,Detail) VALUES("%s","%s","%s","%s","%s","%s","%s","%s","%s")'%(tableName,person.getName(),person.getUrl(),person.getIntroduction(),person.getBasicInfo(),person.getCatalog(),person.getReference(),person.getTag(),person.getImageUrl(),person.getDetail())
         print(str)
