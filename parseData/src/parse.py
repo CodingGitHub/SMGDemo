@@ -4,7 +4,6 @@ Created on 2017年3月30日
 @author: lkl51
 '''
 
-
 import requests
 # import json
 import MySQLdb
@@ -33,19 +32,31 @@ class Parse:
     def closeConnection(self):
         if self.conn:
             self.conn.close()
-        
+    
+    
+    def getDataFromCaiYunAPI(self,url):
+        data = requests.get(url).json()
+        if len(data['data']) <= 0:
+            print('取出数据为空！！')
+        return data
+    
+    
     #调用API得到的数据，并解析数据得到data的value下 的data_json的value    
-    def parseDataFromAPI(self,key=None,task_id=None,task_period=None,data_name=None,pgfrom=None,pgsize=None):
-        url = "http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=&task_id=1490862367&task_period=20170331_0942&data_name=&pgfrom=1&pgsize=30"
-        page = requests.get(url)
-        jsn = page.json()
+    def parseTaskAData(self,key='',task_id='1491037886',task_period='20170324_0035',data_name='',pgfrom='',pgsize=''):
+        url = "http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=%s&task_id=%s&task_period=%s&data_name=%s&pgfrom=%s&pgsize=%s"%(key,task_id,task_period,data_name,pgfrom,pgsize)
+#         print(url)
+        data = self.getDataFromCaiYunAPI(url)
 #         print(jsn)
 #         print(jsn.keys())
 #         print(jsn['data'])
-        for d in jsn['data']:
-#             print(d['data_json'])
-            peopleInfoJson = eval(d['data_json'])
-            yield peopleInfoJson
+#         print(data)
+        peopledict = {}
+        for index,d in enumerate(data['data']):
+            peopledict['title'] = eval(d['data_json'])['title']
+            peopledict['url'] = 'https://baike.baidu.com' + eval(d['data_json'])['url']
+            print(index,peopledict)
+
+#             yield peopleInfoJson
     
     
     def parseEntitydata(self):
@@ -173,8 +184,8 @@ class Dao():
 def main():
     p = Parse()
 #     p.createConnection()
-    p.parseEntitydata()
-#     p.parseDataFromAPI()
+#     p.parseEntitydata()
+    p.parseTaskAData()
 
 if __name__ == '__main__':
     main()
