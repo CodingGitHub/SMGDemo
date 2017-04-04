@@ -12,7 +12,7 @@ class Operator:
     #立即执行任务函数，返回0表示开始执行
     def startTaskImme(self,data,url='http://120.27.27.83:8081/api/task/taskstart?key='):
         js = requests.post(url, data).json()
-        print(js)
+#         print(js)
         if not eval(js['data'].strip())['status']:
             print('[' + data['task_id']+ ':' + data['task_period'] + ']' + '  ' + '抓取任务开始执行...')
             return True
@@ -32,7 +32,7 @@ class Operator:
 #             print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据成功...' )
             return False
         
-    def getTaskResult(self,data,task_id,task_period):
+    def getTaskResult(self,data):
         task_id = data['task_id']
         task_period = data['task_period']
         if self.startTaskImme(data):
@@ -54,18 +54,18 @@ class Operator:
         url = "http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=%s&task_id=%s&task_period=%s&data_name=%s&pgfrom=%s&pgsize=%s"%(key,task_id,task_period,data_name,pgfrom,pgsize)
         data = requests.get(url).json()
         if len(data['data']):
-            return len(data['data'])
+            return data['data']
         else:
             print('获取数据失败')
         return None
             
         
-def main():
-    operator = Operator()
-    list = ['http://baike.baidu.com/link?url=wmK0qP28-peYSEVxJQOYB9plGz4qJXdLyDOdkyAygvHVtCewQauZSYEiihXL7YK9pNGH0CrUlE4JasM2EIk0TLDX-EM3C0n0RyU47ubDPYz55wE_WOz1VyZgy3rRR0nJ&qq-pf-to=pcqq.c2c','http://baike.baidu.com/item/%E9%87%91%E6%BB%89%E6%A4%8D']
-    postdata = {'task_id':'1491141020','task_period':'20170324_0038','apiinput':'0','urllist[]':list,'urluniq':'1'}
-    operator.startTaskImme(data=postdata)
-    operator.getTaskPeriodStatus('1491141020', '20170324_0038')
-    
-if __name__ == '__main__':
-    main()
+# def main():
+#     operator = Operator()
+#     list = ['http://baike.baidu.com/link?url=wmK0qP28-peYSEVxJQOYB9plGz4qJXdLyDOdkyAygvHVtCewQauZSYEiihXL7YK9pNGH0CrUlE4JasM2EIk0TLDX-EM3C0n0RyU47ubDPYz55wE_WOz1VyZgy3rRR0nJ&qq-pf-to=pcqq.c2c','http://baike.baidu.com/item/%E9%87%91%E6%BB%89%E6%A4%8D']
+#     postdata = {'task_id':'1491141020','task_period':'20170324_0038','apiinput':'0','urllist[]':list,'urluniq':'1'}
+#     operator.startTaskImme(data=postdata)
+#     operator.getTaskPeriodStatus('1491141020', '20170324_0038')
+#     
+# if __name__ == '__main__':
+#     main()

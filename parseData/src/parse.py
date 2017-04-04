@@ -8,14 +8,21 @@ import requests
 # import json
 import MySQLdb
 from person import Person
-
+import time
+from taskOperate import Operator
+from bokeh.util.logconfig import level
 #数据解析类
 class Parse:
-    conn = None
-    cur = None
-    regionString = None
-    organizeString = None
-    PTag = None
+    def __init__(self):
+        self.conn = None
+        self.cur = None
+        self.regionString = None
+        self.organizeString = None
+        self.PTag = None
+        self.person = None
+        self.operator = Operator()
+        self.currentPersonId = None  #当前人物ID
+        self.CurrentEntityId = None   #当前实体ID
     def createConnection(self,host='120.27.27.83',user='media_demo_user',passwd='6yhnMJU&',db='media_demo',port=20002):
         try:
             self.conn = MySQLdb.connect(host,user,passwd,db,port)
@@ -55,87 +62,151 @@ class Parse:
             peopledict['title'] = eval(d['data_json'])['title']
             peopledict['url'] = 'https://baike.baidu.com' + eval(d['data_json'])['url']
             print(index,peopledict)
+            urllist = []
+            urllist.append(url)
+#             print(self.execuTaskB(urllist))
+            peopledata = self.execuTaskB(urllist = urllist)
+            self.parseEntitydataFromTaskB(peopledata, level=1)
 
 #             yield peopleInfoJson
     
-    
-    def parseEntitydata(self):
-        try:
-            f = self.parseDataFromAPI()
-            entityInfo = f.__next__()
-            while entityInfo:
-#                 print(sorted(entityInfo.keys()))
-                print(entityInfo)
-                self.extractPerson(entityInfo)
-                entityInfo = f.__next__()
-        except:
-            raise
-    
-    
-    def extractPerson(self,entityInfo):
-        person = Person()
+    def execuTaskB(self, task_id = '1491047322', task_period = None, apiinput = '1', urllist = None, urluniq = '0'):
+        data = {}
+        data['task_id'] = task_id
+        data['task_period'] = task_period
+        data['apiinput'] = apiinput
+        data['urllist[]'] = urllist
+        data['urluniq'] = urluniq
         
-        if 'people_info' in entityInfo:
-            people_info = entityInfo['people_info'][0]
-            if 'people_tag' in people_info:
-                peopleTag = people_info['people_tag']
-                person.setTag(peopleTag)
-                print(peopleTag)
-            if 'people_name' in people_info:
-                peoplename = people_info['people_name']
-                person.setName(peoplename)
-                print(peoplename)
-            if '_SON_RELATION' in people_info:
-                peopleurl = people_info['_SON_RELATION']['url']
-                person.setUrl(peopleurl)
-                print(peopleurl)
+        task_period = str(time.strftime('%y%m%d_%H%Mauto',time.localtime(time.time())))
+        data['task_period'] = task_period
         
-        if 'people_image' in entityInfo:
-            people_Image = entityInfo['people_image'][0]
-            if 'people_image' in people_Image:
-                people_ImageUrl = people_Image['people_image']
-                person.setImageUrl(people_ImageUrl)
-                print(people_ImageUrl)
-            
-        if 'introduction' in entityInfo:
-            introduction = entityInfo['introduction'][0]
-            people_intro = introduction['people_intro']
-            person.setIntroduction(people_intro)
-            print(people_intro)
-        
-        if 'people_detail' in entityInfo:
-            people_detail = entityInfo['people_detail'][0]
-            basic_name = people_detail['basic_name']
-            basic_value = people_detail['basic_value']
-            
-            nameList = basic_name.split('|')
-            valueList = basic_value.split('|')
-            str = ''
-            for i in range(len(nameList)):
-                str += nameList[i] + ':' + valueList[i] + ';'            
-            print(basic_name,basic_value)
-            print(str)
-            person.setBasicInfo((str))
-            
-        if 'catalog' in entityInfo:
-            cata = entityInfo['catalog'][0]
-            catalog_name = cata['catalog_name']
-            person.setCatalog(catalog_name)
-            print(catalog_name)
-            
-        if 'text' in entityInfo:
-            text = entityInfo['text'][0]
-            text_file = text['text_file']
-            person.setDetail(text_file.replace('"',"“"))
-            print(text_file)
-            
-            
-        if not self.conn:
-            self.createConnection()
-            
-        dao = Dao()
-        dao.insert('t_person', person, self.cur,self.conn)
+        return self.operator.getTaskResult(data)
 
+    def parseEntitydataFromTaskB(self,entityData,level = 1):
+
+        entityInfoDict = {}  
+        entity_list = []
+
+        
+        for data in entityData:
+            jsondata = eval(data['data_json'])
+            print(type(jsondata))
+    
+    
+            #目录
+            if jsondata['data_name'] == 'catalog':
+                seed_url = jsondata['_SEED_URL']
+                if seed_url not in entityInfoDict:
+                    entityInfoDict[seed_url] = {}
+                entityInfoDict[seed_url]['catalog_name'] = jsondata['catalog_name']
+                #url
+                entityInfoDict[seed_url]['url'] = seed_url
+            
+            #名片
+            if jsondata['data_name'] == 'entity_detail':
+                basic_name = jsondata['basic_name']
+                basic_value = jsondata['basic_value']
+                nameList = basic_name.split('|')
+                valueList = basic_value.split('|')
+                str = ''
+                for i in range(len(nameList)):
+                    str += nameList[i].strip() + ':' + valueList[i].strip() + ';'            
+                    print(basic_name,basic_value)
+                    print(str)
+                seed_url = jsondata['_SEED_URL']
+                if seed_url not in entityInfoDict:
+                    entityInfoDict[seed_url] = {}
+                entityInfoDict[seed_url]['entity_detail'] = str
+            
+            #图片url
+            if jsondata['data_name'] == 'entity_image':
+                seed_url = jsondata['_SEED_URL']
+                if seed_url not in entityInfoDict:
+                    entityInfoDict[seed_url] = {}
+                entityInfoDict[seed_url]['entity_image'] = jsondata['entity_image']
+            
+            #标签
+            if jsondata['data_name'] == 'entity_tag':
+                seed_url = jsondata['_SEED_URL']
+                if seed_url not in entityInfoDict:
+                    entityInfoDict[seed_url] = {}
+                entityInfoDict[seed_url]['entity_tag'] = jsondata['entity_tag']
+                #名字
+                entityInfoDict[seed_url]['entity_name'] = jsondata['entity_name']
+            
+            #详细介绍
+            if jsondata['data_name'] == 'introduction':
+                seed_url = jsondata['_SEED_URL']
+                if seed_url not in entityInfoDict:
+                    entityInfoDict[seed_url] = {}
+                entityInfoDict[seed_url]['introduction'] = jsondata['entity_intro']
+            
+            #全文
+            if jsondata['data_name'] == 'text':
+                seed_url = jsondata['_SEED_URL']
+                if seed_url not in entityInfoDict:
+                    entityInfoDict[seed_url] = {}
+                entityInfoDict[seed_url]['text'] = jsondata['text_file']
+            
+            
+            #子链接
+            if jsondata['data_name'] == 'entity_list':
+                seed_url = jsondata['_SEED_URL']
+                if seed_url not in entityInfoDict:
+                    entityInfoDict[seed_url] = {}
+                    entityInfoDict[seed_url]['entitylist'] = []
+        #         entiList = entityInfoDict[seed_url]['entity_list']
+                for x in jsondata['url_list'].split('|'): 
+                    if x != '':
+                        entity_list.append('http:/baike.baidu.com' + x)
+        entityInfoDict[seed_url]['entity_list'] = entity_list
+        self.afterParseDataFromTaskB(entityInfoDict, level)
+        
+    def afterParseDataFromTaskB(self,entityInfoDict,level = 1):
+        if level == 1:
+            self.extractPerson(entityInfoDict, level = 1)
+            urllist = entityInfoDict.items()[0]['entity_list']
+            entitydata = self.execuTaskB(urllist = urllist)
+            self.parseEntitydataFromTaskB(entitydata, level = 2)
+        if level == 2:
+            for key in entityInfoDict.keys():
+                tag = entityInfoDict[key]['entity_tag']
+                name = entityInfoDict[key]['entity_name']
+                type = self.getEntityType(name, tag)
+                if type == 1:
+                    self.afterParseDataFromTaskB(entityInfoDict, level = 2)
+            
+        
+    
+    def extractPerson(self,entityInfo,level = 1):
+        
+        
+        for key in entityInfo.keys():
+            person = Person()
+            person.setName(entityInfo[key]['entity_name'])
+            person.setUrl(entityInfo[key]['url'])
+            person.setImageUrl(entityInfo[key]['entity_image'])
+            person.setCatalog(entityInfo[key]['catalog_name'])
+            person.setIntroduction(entityInfo[key]['introduction'])
+            person.setDetail(entityInfo[key]['entity_detail'])
+            person.setReference(entityInfo[key]['text_file'])
+            person.setTag(entityInfo[key]['entity_tag'])
+            
+            self.person = person
+            
+            dao = Dao()
+            dao.insert('t_person', person, self.cur,self.conn)
+            
+            if not self.conn:
+                self.createConnection()
+                
+            dao = Dao()
+            if level == 1:
+                self.currentPersonId = dao.insert('t_person', person, self.cur,self.conn)
+            if level == 2:
+                self.CurrentEntityId = dao.insert('t_person', person, self.cur,self.conn)
+            
     #读地域字典
     def readRegiondict(self):       
         with open('region.txt','r',encoding = 'utf-8') as f:
