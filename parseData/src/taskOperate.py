@@ -26,10 +26,10 @@ class Operator:
         js = requests.get(url).json()
         period_status = js['data'][0]['period_status']
         if period_status:
-#             print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据成功...' )
+            print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据成功...' )
             return True
         else:
-#             print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据成功...' )
+            print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据失败...' )
             return False
         
     def getTaskResult(self,data):
@@ -39,8 +39,8 @@ class Operator:
             time.sleep(3)
             status = self.getTaskPeriodStatus(task_id, task_period)
             i = 0
-            while not status and i < 100:
-                time.sleep(3)
+            while (not status) and (i < 200):
+                time.sleep(4)
                 status = self.getTaskPeriodStatus(task_id, task_period)
                 ++i
             if(i == 100):
@@ -52,8 +52,10 @@ class Operator:
     
     def getTaskData(self,key='',task_id='1491037886',task_period='20170324_0035',data_name='',pgfrom='',pgsize=''):
         url = "http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=%s&task_id=%s&task_period=%s&data_name=%s&pgfrom=%s&pgsize=%s"%(key,task_id,task_period,data_name,pgfrom,pgsize)
+        print(url)
         data = requests.get(url).json()
         if len(data['data']):
+            print('获取数据成功')
             return data['data']
         else:
             print('获取数据失败')
