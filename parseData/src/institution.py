@@ -9,9 +9,11 @@ class Institution:
     url = None
     introduction = None
     basicinfo = None
+    catalog = None
     detail = None
-    reference = None
     tag = None
+    imageUrl = None
+    
     def setId(self,i):
         self.id = i
     def getid(self):
@@ -40,12 +42,17 @@ class Institution:
         self.detail = detail
     def getDetail(self):
         return self.detail
-    def setReference(self,refer):
-        self.reference = refer
-    def getReference(self):
-        return self.reference
+    
     def setTag(self,tag):
         self.tag = tag
     def getTag(self):
         return self.tag
-        
+    def setImageUrl(self,url):
+        self.imageUrl = url
+    def getImageUrl(self):
+        return self.imageUrl
+    
+    def setCatalog(self,cata):
+        self.catalog = cata
+    def getCatalog(self):
+        return self.catalog

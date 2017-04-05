@@ -11,6 +11,8 @@ from person import Person
 import time
 from taskOperate import Operator
 from relation import Relation
+from region import Region
+from institution import Institution
 #数据解析类
 class Parse:
     def __init__(self):
@@ -84,7 +86,6 @@ class Parse:
     def execuTaskB(self, task_id = '1491047322', task_period = None, apiinput = '1', urllist = None, urluniq = '0'):
         data = {}
         data['task_id'] = task_id
-        data['task_period'] = task_period
         data['apiinput'] = apiinput
         data['urllist[]'] = urllist
         data['urluniq'] = urluniq
@@ -168,9 +169,9 @@ class Parse:
                         entityInfoDict[seed_url] = {}
                         entityInfoDict[seed_url]['entitylist'] = []
             #         entiList = entityInfoDict[seed_url]['entity_list']
-                    for x in jsondata['url_list'].split('|'): 
+                    for x in jsondata['url_list'].strip().split('|'): 
                         if x != '':
-                            entity_list.append('http:/baike.baidu.com' + x)
+                            entity_list.append('http://baike.baidu.com' + x.strip())
             entityInfoDict[seed_url]['entity_list'] = entity_list
             print(entityInfoDict)
             self.afterParseDataFromTaskB(entityInfoDict, level)
@@ -182,17 +183,35 @@ class Parse:
                 self.extractPerson(entityInfoDict[key], level = 1)
                 if 'entity_list' in entityInfoDict[key]:
                     urllist = entityInfoDict[key]['entity_list']
+                    print('urllist:' + str(urllist))
                     if len(urllist):
-                        entitydata = self.execuTaskB(urllist = urllist)
-                        self.parseEntitydataFromTaskB(entitydata, level = 2)
+                        for url in urllist:
+                            li = []
+                            li.append(url)
+                            print(li)
+                            entitydata = self.execuTaskB(urllist = li)
+                            self.parseEntitydataFromTaskB(entitydata, level = 2)
         if level == 2:
             for key in entityInfoDict.keys():
-                tag = entityInfoDict[key]['entity_tag']
-                name = entityInfoDict[key]['entity_name']
+                if 'entity_tag' in entityInfoDict[key]:
+                    tag = entityInfoDict[key]['entity_tag']
+                else :
+                    tag = ""
+                    
+                if 'entity_name' in entityInfoDict[key]:    
+                    name = entityInfoDict[key]['entity_name']
+                else :
+                    name = ""
                 type = self.getEntityType(name, tag)
                 if type == 1:
 #                     self.afterParseDataFromTaskB(entityInfoDict, level = 2)
                     self.extractPerson(entityInfoDict[key], level = 2)
+                    self.relation(type)
+                if type == 2:
+                    self.extractRegion(entityInfoDict[key])
+                    self.relation(type)
+                if type == 3:
+                    self.extractInstitution(entityInfoDict[key])
                     self.relation(type)
                     
                     
@@ -200,12 +219,15 @@ class Parse:
     
     #关系解析，entityInfo为第二层实体的信息，相当于entityInfoDict[key]
     def relation(self,type):
-        relation = Relation()
-        relation.setId1(self.currentPersonId)
-        relation.setId2(self.CurrentEntityId)
-        relation.setType(type)
-        relation.setStrength(self.getRelationStrength(self.person.getReference()))
-        self.dao.insertRelation('t_relation', relation, self.cur, self.conn)
+        if self.CurrentEntityId and self.currentPersonId:
+            relation = Relation()
+            relation.setId1(self.currentPersonId)
+            relation.setId2(self.CurrentEntityId)
+            relation.setType(type)
+            relation.setStrength(self.getRelationStrength(self.person.getDetail()))
+            self.dao.insertRelation('t_relation', relation, self.cur, self.conn)
+            self.CurrentEntityId = None
+#             self.currentPersonId = None
         
     def getRelationStrength(self,text_file):
         s = text_file
@@ -234,9 +256,9 @@ class Parse:
         if 'introduction' in entityInfo:
             person.setIntroduction(entityInfo['introduction'])
         if 'entity_detail' in entityInfo:
-            person.setDetail(entityInfo['entity_detail'])
+            person.setBasicInfo(entityInfo['entity_detail'])
         if 'text_file' in entityInfo:    
-            person.setReference(entityInfo['text_file'].replace('"','“'))
+            person.setDetail(entityInfo['text_file'].replace('"','“'))
         if 'entity_tag' in entityInfo:    
             person.setTag(entityInfo['entity_tag'])
             
@@ -250,6 +272,46 @@ class Parse:
         if level == 2:
             self.entity = person
             self.CurrentEntityId = self.dao.insertPerson('t_person', person, self.cur,self.conn)
+    
+    def extractInstitution(self,entityInfo):
+        institution = Institution()
+        if 'entity_name' in entityInfo:
+            institution.setName(entityInfo['entity_name'])
+        if 'url' in entityInfo:
+            institution.setUrl(entityInfo['url'])
+        if 'entity_image' in entityInfo:
+            institution.setImageUrl(entityInfo['entity_image'])
+        if 'catalog_name' in entityInfo:
+            institution.setCatalog(entityInfo['catalog_name'])
+        if 'introduction' in entityInfo:
+            institution.setIntroduction(entityInfo['introduction'].replace('"',"“"))
+        if 'entity_detail' in entityInfo:
+            institution.setBasicInfo(entityInfo['entity_detail'])
+        if 'text_file' in entityInfo:    
+            institution.setDetail(entityInfo['text_file'].replace('"','“'))
+        if 'entity_tag' in entityInfo:    
+            institution.setTag(entityInfo['entity_tag'])
+            
+        if not self.conn:
+            self.createConnection()
+            
+        self.entity = institution
+        self.dao.insertInstitution('t_institution', institution, self.cur, self.conn)
+        
+    
+    def extractRegion(self,entityInfo):
+        region = Region()
+        if 'entity_name' in entityInfo:
+            region.setName(entityInfo['entity_name'])
+        if 'url' in entityInfo:
+            region.setUrl(entityInfo['url'])
+        if 'entity_tag' in entityInfo:    
+            region.setTag(entityInfo['entity_tag'])
+            
+        if not self.conn:
+            self.createConnection()
+        self.entity = region
+        self.dao.insertRegion('t_region', region, self.cur, self.conn)
             
     #读地域字典
     def readRegiondict(self):       
@@ -290,45 +352,60 @@ class Parse:
 class Dao():
     #实现向数据库中people表中插入数据，并返回插入对象在数据库中的ID
     def insertPerson(self,tableName,person,cur,conn):
-        str = 'INSERT INTO %s(Name,URL,Introduction,BasicInfo,Catalog,Reference,Tag,ImageUrl,Detail) VALUES("%s","%s","%s","%s","%s","%s","%s","%s","%s")'%(tableName,person.getName(),person.getUrl(),person.getIntroduction(),person.getBasicInfo(),person.getCatalog(),person.getReference(),person.getTag(),person.getImageUrl(),person.getDetail())
+        str = 'INSERT INTO %s(Name,URL,Introduction,BasicInfo,Catalog,Tag,ImageUrl,Detail) VALUES("%s","%s","%s","%s","%s","%s","%s","%s")'%(tableName,person.getName(),person.getUrl(),person.getIntroduction(),person.getBasicInfo(),person.getCatalog(),person.getTag(),person.getImageUrl(),person.getDetail())
         print(str)
 #         self.f.write(str)
+        try:
+            print(cur.execute(str))
+            conn.commit()
+            cur.execute('select @@IDENTITY;')
+            last_id = cur.fetchone()[0]
+            print(last_id)
+            return last_id
+        except:
+            pass
+    def insertRelation(self,tableName,relation,cur,conn):
+        str = 'INSERT INTO %s(ID1,ID2,Type,Name,Strength) VALUES("%s","%s","%s","%s","%s")'%(tableName,relation.getId1(),relation.getId2(),relation.getType(),relation.getName(),relation.getStrength()) 
+        print(str)
+#         self.f.write(str)
+        try:
+            print(cur.execute(str))
+            conn.commit()
+            cur.execute('select @@IDENTITY;')
+            last_id = cur.fetchone()[0]
+            print(last_id)
+            return last_id
+        except:
+            pass
+        
+    #实现向数据库中表region中插入数据，并返回插入对象在数据库中的ID
+    def insertRegion(self,tableName,region,cur,conn):
+        str = 'INSERT INTO %s(Name,URL,Type,Tag)VALUES("%s","%s","%s","%s")'%(tableName,region.getName(),region.getUrl(),region.getType(),region.getTag())
+        print(str)
         print(cur.execute(str))
         conn.commit()
         cur.execute('select @@IDENTITY;')
         last_id = cur.fetchone()[0]
         print(last_id)
         return last_id
-    def insertRelation(self,tableName,relation,cur,conn):
-        str = 'INSERT INTO %s(ID1,ID2,Type,Name,Strength) VALUES("%s","%s","%s","%s","%s")'%(tableName,relation.getId1(),relation.getId2(),relation.getType(),relation.getName(),relation.getStrength()) 
-        print(str)
-#         self.f.write(str)
-        print(cur.execute(str))
-        conn.commit()
-        last_id = cur.execute('select @@IDENTITY;')
-        print(last_id)
-        return last_id
-    #实现向数据库中表region中插入数据，并返回插入对象在数据库中的ID
-    def insertRegion(self,tableName,region,cur,conn):
-        str = 'INSERT INTO %s(Name,URL,Type,Tag)VALUES("%s","%s","%s","%s")'%(tableName,region.getName(),region.getURL(),region.getType(),region.getTag())
-        print(str)
-        print(cur.execute(str))
-        conn.commit()
-        last_id = cur.execute('select @@IDENTITY;')
-        print(last_id)
-        return last_id
     def insertInstitution(self,tableName,institution,cur,conn):
-        str = 'INSERT INTO %s(Name,URL,Introduction,BasicInfo,detail,Reference,Tag,ImageUrl)VALUES("%s","%s","%s","%s","%s","%s","%s","%s")'%(tableName,institution.getName(),institution.getUrl(),institution.getIntroduction(),institution.getBasicInfo(),institution.getDetail(),institution.getReference(),institution.getTag(),institution.getImageUrl())
+        str = 'INSERT INTO %s(Name,URL,Introduction,BasicInfo,detail,Tag,ImageUrl,Catalog)VALUES("%s","%s","%s","%s","%s","%s","%s","%s")'%(tableName,institution.getName(),institution.getUrl(),institution.getIntroduction(),institution.getBasicInfo(),institution.getDetail(),institution.getTag(),institution.getImageUrl(),institution.getCatalog())
         print(str)
         print(cur.execute(str))
         conn.commit()
-        return cur.execute('select @@IDENTITY;')
+        cur.execute('select @@IDENTITY;')
+        last_id = cur.fetchone()[0]
+        print(last_id)
+        return last_id
     def insertPersonevent(self,tableName,personevent,cur,conn):
         str = 'INSERT INTO %s(PID,Date,Detail)VALUES("%s","%s","%s")'%(tableName,personevent.getPid(),personevent.getDate(),personevent.getDetail())
         print(str)
         print(cur.execute(str))
         conn.commit()
-        return cur.execute('select @@IDENTITY;')
+        cur.execute('select @@IDENTITY;')
+        last_id = cur.fetchone()[0]
+        print(last_id)
+        return last_id
                   
     
 def main():

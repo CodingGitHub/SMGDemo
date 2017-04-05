@@ -24,29 +24,32 @@ class Operator:
     def getTaskPeriodStatus(self,task_id,task_period,url='http://120.27.27.83:8081/api/task/getperiodstatus?key=&task_id=%s&task_period=%s'):
         url = url %(task_id,task_period)
         js = requests.get(url).json()
-        period_status = js['data'][0]['period_status']
-        if period_status:
-            print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据成功...' )
-            return True
-        else:
-            print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据失败...' )
-            return False
+        period_status = None
+        if len(js['data']):
+            period_status = js['data'][0]['period_status']  #0:执行中;1:成功；2：失败：3：停止
+            if period_status == '1':
+                print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据成功...' )
+#                 return period_status
+            else:
+                print('[' + task_id + ':' + task_period + ']' + '  ' + '抓取数据失败...' )
+#                 return period_status
+        return period_status
         
     def getTaskResult(self,data):
         task_id = data['task_id']
         task_period = data['task_period']
         if self.startTaskImme(data):
-            time.sleep(3)
+            time.sleep(4)
             status = self.getTaskPeriodStatus(task_id, task_period)
             i = 0
-            while (not status) and (i < 200):
+            while (status == '0') and (i < 10):
                 time.sleep(4)
                 status = self.getTaskPeriodStatus(task_id, task_period)
-                ++i
-            if(i == 100):
+                i = i+1
+            if(i == 10 or status != '1'):
                 print('抓取数据失败!!!')
                 return None
-            else:
+            elif(status == '1'):
                 return self.getTaskData(task_id = task_id, task_period = task_period)
         return None
     

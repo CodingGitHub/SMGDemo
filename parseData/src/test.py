@@ -30,10 +30,10 @@ from _ast import Dict
 # data = requests.get('http://120.27.27.83:8081/api/task/taskstop?key=&task_id=1491037886&task_period=20170324_0035')
 
 #post
-list = ['http:///baike.baidu.com/view/824752.htm','https://baike.baidu.com/subview/6203277/6292089.htm']
-postdata = {'task_id':'1491047322','task_period':'20190324_0056a','apiinput':'1','urllist[]':list,'urluniq':'0'}
-data = requests.post('http://120.27.27.83:8081/api/task/taskstart?key=',data=postdata)
-print(data.json())
+# list = ['http://baike.baidu.com/item/%E4%B8%AD%E5%9B%BD%E5%85%B1%E4%BA%A7%E5%85%9A', 'http://baike.baidu.com/item/%E4%B8%AD%E5%9B%BD%E4%BA%BA%E6%B0%91%E8%A7%A3%E6%94%BE%E5%86%9B']
+# postdata = {'task_id':'1491047322','task_period':'01190324_0056ab','apiinput':'1','urllist[]':list,'urluniq':'0'}
+# data = requests.post('http://120.27.27.83:8081/api/task/taskstart?key=',data=postdata)
+# print(data.json())
 
 
 # peoplelistdata = requests.get('http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=&task_id=1491037886&task_period=20170324_0038&data_name=&pgfrom=&pgsize=').json()
@@ -149,5 +149,7 @@ print(data.json())
 #     
 #     
 # print(entityInfoDict)
-#     
+
+url = 'dsada'
+print(list(url))     
 

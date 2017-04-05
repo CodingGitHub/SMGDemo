@@ -11,7 +11,6 @@ class Person:
     basicinfo = None
     detail = None
     catalog = None
-    reference = None
     tag = None
     imageUrl = None
     
@@ -44,11 +43,6 @@ class Person:
         self.catalog = clog
     def getCatalog(self):
         return self.catalog
-    
-    def setReference(self,ref):
-        self.reference = ref
-    def getReference(self):
-        return self.reference
     
     def setTag(self,ta):
         self.tag = ta
