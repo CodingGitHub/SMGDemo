@@ -83,7 +83,7 @@ class Parse:
 
 #             yield peopleInfoJson
     
-    def execuTaskB(self, task_id = '1491047322', task_period = None, apiinput = '1', urllist = None, urluniq = '0'):
+    def execuTaskB(self, task_id = '1491047322', task_period = None, apiinput = '1', urllist = None, urluniq = '1'):
         data = {}
         data['task_id'] = task_id
         data['apiinput'] = apiinput
@@ -258,7 +258,7 @@ class Parse:
         if 'entity_detail' in entityInfo:
             person.setBasicInfo(entityInfo['entity_detail'])
         if 'text_file' in entityInfo:    
-            person.setDetail(entityInfo['text_file'].replace('"','“'))
+            person.setDetail(entityInfo['text_file'])
         if 'entity_tag' in entityInfo:    
             person.setTag(entityInfo['entity_tag'])
             
@@ -284,11 +284,11 @@ class Parse:
         if 'catalog_name' in entityInfo:
             institution.setCatalog(entityInfo['catalog_name'])
         if 'introduction' in entityInfo:
-            institution.setIntroduction(entityInfo['introduction'].replace('"',"“"))
+            institution.setIntroduction(entityInfo['introduction'])
         if 'entity_detail' in entityInfo:
             institution.setBasicInfo(entityInfo['entity_detail'])
         if 'text_file' in entityInfo:    
-            institution.setDetail(entityInfo['text_file'].replace('"','“'))
+            institution.setDetail(entityInfo['text_file'])
         if 'entity_tag' in entityInfo:    
             institution.setTag(entityInfo['entity_tag'])
             
@@ -352,7 +352,7 @@ class Parse:
 class Dao():
     #实现向数据库中people表中插入数据，并返回插入对象在数据库中的ID
     def insertPerson(self,tableName,person,cur,conn):
-        str = 'INSERT INTO %s(Name,URL,Introduction,BasicInfo,Catalog,Tag,ImageUrl,Detail) VALUES("%s","%s","%s","%s","%s","%s","%s","%s")'%(tableName,person.getName(),person.getUrl(),person.getIntroduction(),person.getBasicInfo(),person.getCatalog(),person.getTag(),person.getImageUrl(),person.getDetail())
+        str = "INSERT INTO %s(Name,URL,Introduction,BasicInfo,Catalog,Tag,ImageUrl,Detail) VALUES('%s','%s','%s','%s','%s','%s','%s','%s')"%(tableName,person.getName(),person.getUrl(),person.getIntroduction(),person.getBasicInfo(),person.getCatalog(),person.getTag(),person.getImageUrl(),person.getDetail())
         print(str)
 #         self.f.write(str)
         try:
@@ -365,7 +365,7 @@ class Dao():
         except:
             pass
     def insertRelation(self,tableName,relation,cur,conn):
-        str = 'INSERT INTO %s(ID1,ID2,Type,Name,Strength) VALUES("%s","%s","%s","%s","%s")'%(tableName,relation.getId1(),relation.getId2(),relation.getType(),relation.getName(),relation.getStrength()) 
+        str = "INSERT INTO %s(ID1,ID2,Type,Name,Strength) VALUES('%s','%s','%s','%s','%s')"%(tableName,relation.getId1(),relation.getId2(),relation.getType(),relation.getName(),relation.getStrength()) 
         print(str)
 #         self.f.write(str)
         try:
@@ -380,7 +380,7 @@ class Dao():
         
     #实现向数据库中表region中插入数据，并返回插入对象在数据库中的ID
     def insertRegion(self,tableName,region,cur,conn):
-        str = 'INSERT INTO %s(Name,URL,Type,Tag)VALUES("%s","%s","%s","%s")'%(tableName,region.getName(),region.getUrl(),region.getType(),region.getTag())
+        str = "INSERT INTO %s(Name,URL,Type,Tag)VALUES('%s','%s','%s','%s')"%(tableName,region.getName(),region.getUrl(),region.getType(),region.getTag())
         print(str)
         print(cur.execute(str))
         conn.commit()
@@ -389,7 +389,7 @@ class Dao():
         print(last_id)
         return last_id
     def insertInstitution(self,tableName,institution,cur,conn):
-        str = 'INSERT INTO %s(Name,URL,Introduction,BasicInfo,detail,Tag,ImageUrl,Catalog)VALUES("%s","%s","%s","%s","%s","%s","%s","%s")'%(tableName,institution.getName(),institution.getUrl(),institution.getIntroduction(),institution.getBasicInfo(),institution.getDetail(),institution.getTag(),institution.getImageUrl(),institution.getCatalog())
+        str = "INSERT INTO %s(Name,URL,Introduction,BasicInfo,detail,Tag,ImageUrl,Catalog)VALUES('%s','%s','%s','%s','%s','%s','%s','%s')"%(tableName,institution.getName(),institution.getUrl(),institution.getIntroduction(),institution.getBasicInfo(),institution.getDetail(),institution.getTag(),institution.getImageUrl(),institution.getCatalog())
         print(str)
         print(cur.execute(str))
         conn.commit()
@@ -398,7 +398,7 @@ class Dao():
         print(last_id)
         return last_id
     def insertPersonevent(self,tableName,personevent,cur,conn):
-        str = 'INSERT INTO %s(PID,Date,Detail)VALUES("%s","%s","%s")'%(tableName,personevent.getPid(),personevent.getDate(),personevent.getDetail())
+        str = "INSERT INTO %s(PID,Date,Detail)VALUES('%s','%s','%s')"%(tableName,personevent.getPid(),personevent.getDate(),personevent.getDetail())
         print(str)
         print(cur.execute(str))
         conn.commit()
