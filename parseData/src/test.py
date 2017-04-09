@@ -150,6 +150,7 @@ from _ast import Dict
 #     
 # print(entityInfoDict)
 
-url = 'dsada'
-print(list(url))     
+# url = 'dsada'
+# print(list(url))     
 
+print("zhang'hao".replace("'", "''"))

@@ -1,3 +1,4 @@
+# -*- coding=utf-8 -*-  
 '''
 Created on 2017年3月30日
 
@@ -246,7 +247,7 @@ class Parse:
 #         for key in entityInfo.keys():
         person = Person()
         if 'entity_name' in entityInfo:
-            person.setName(entityInfo['entity_name'])
+            person.setName(entityInfo['entity_name'].replace("'","''"))
         if 'url' in entityInfo:
             person.setUrl(entityInfo['url'])
         if 'entity_image' in entityInfo:
@@ -254,11 +255,11 @@ class Parse:
         if 'catalog_name' in entityInfo:
             person.setCatalog(entityInfo['catalog_name'])
         if 'introduction' in entityInfo:
-            person.setIntroduction(entityInfo['introduction'])
+            person.setIntroduction(entityInfo['introduction'].replace("'","''"))
         if 'entity_detail' in entityInfo:
-            person.setBasicInfo(entityInfo['entity_detail'])
+            person.setBasicInfo(entityInfo['entity_detail'].replace("'","''"))
         if 'text_file' in entityInfo:    
-            person.setDetail(entityInfo['text_file'])
+            person.setDetail(entityInfo['text_file'].replace("'","''"))
         if 'entity_tag' in entityInfo:    
             person.setTag(entityInfo['entity_tag'])
             
@@ -284,11 +285,11 @@ class Parse:
         if 'catalog_name' in entityInfo:
             institution.setCatalog(entityInfo['catalog_name'])
         if 'introduction' in entityInfo:
-            institution.setIntroduction(entityInfo['introduction'])
+            institution.setIntroduction(entityInfo['introduction'].replace("'","''"))
         if 'entity_detail' in entityInfo:
-            institution.setBasicInfo(entityInfo['entity_detail'])
+            institution.setBasicInfo(entityInfo['entity_detail'].replace("'","''"))
         if 'text_file' in entityInfo:    
-            institution.setDetail(entityInfo['text_file'])
+            institution.setDetail(entityInfo['text_file'].replace("'","''"))
         if 'entity_tag' in entityInfo:    
             institution.setTag(entityInfo['entity_tag'])
             
@@ -335,6 +336,9 @@ class Parse:
         
         if not self.organizeString:
             self.readOrganizedict()
+        if entityName == "":
+            return None
+        
         
         entityNT = entityName + entityTag
         PTag = '人物'
@@ -363,7 +367,8 @@ class Dao():
             print(last_id)
             return last_id
         except:
-            pass
+            raise
+        
     def insertRelation(self,tableName,relation,cur,conn):
         str = "INSERT INTO %s(ID1,ID2,Type,Name,Strength) VALUES('%s','%s','%s','%s','%s')"%(tableName,relation.getId1(),relation.getId2(),relation.getType(),relation.getName(),relation.getStrength()) 
         print(str)
