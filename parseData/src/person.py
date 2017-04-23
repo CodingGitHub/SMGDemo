@@ -16,7 +16,7 @@ class Person:
     
     def setId(self,i):
         self.id = i
-    def getid(self):
+    def getId(self):
         return self.id
     
     def setName(self,name):

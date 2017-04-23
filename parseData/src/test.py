@@ -1,3 +1,5 @@
+# -*- coding=utf-8 -*- 
+
 '''
 Created on 2017年4月1日
 
@@ -5,9 +7,9 @@ Created on 2017年4月1日
 '''
 import requests
 import json
-
-from collections import Counter
-from _ast import Dict
+import re
+# from collections import Counter
+# from _ast import Dict
 # data = requests.get('http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=&task_id=1490604212&data_name=&pgfrom=2&pgsize=1')
 # print(data.json())
 # # print(js)
@@ -153,4 +155,55 @@ from _ast import Dict
 # url = 'dsada'
 # print(list(url))     
 
-print("zhang'hao".replace("'", "''"))
+# print("zhang'hao".replace("'", "''"))
+# str  = '2011年1月14日6时，刘华清\在北京逝世，享年\\95岁。'
+# pa1 = re.compile(r'^\d{4}年\d{0,2}月*\d{0,2}日*\d{0,2}时*')
+# print( re.findall(pa1, str))
+# print(sorted(['2011年1月14日6时','2011年','2011年1月']))
+# str = str.replace('\\','').replace(',', '')
+# print(str)
+# import MySQLdb
+# conn = MySQLdb.connect('120.27.27.83','media_demo_user','6yhnMJU&','media_demo',20002)
+# cur = conn.cursor()
+# conn.set_character_set('utf8')
+# cur.execute("set names utf8")
+# cur.execute('SET CHARACTER SET utf8;')
+# cur.execute('SET character_set_connection=utf8;')
+# print(cur.execute("select *from t_person t where t.URL = 'https://baike.baidu.com/view/1069807.htm'"))
+# print(cur.fetchone())
+#
+# def qq():
+#     return 1,2
+# 
+# print(qq())
+# 
+# 
+# aa = list()
+# aa.append(1)
+# print(aa)
+# 
+# 
+# bb = dict()
+# bb['a'] = {}
+# bb['a']['b'] = aa
+# print(bb['a']['b'])
+
+
+# import sys
+# import os
+# print(sys.path[0])
+# print(os.getcwd())
+# print(os.path.split(os.path.realpath(__file__))[0] )
+
+# from bs4 import BeautifulSoup
+# str = '<div class="para" label-module="para">《开国元勋画传》是2001年6月1日中央文献出版社出版的图书，作者吴殿尧。全书共四卷，200余万字，3800多幅图片，图文并茂，体例新颖、内容翔实。本画传介绍了<a target=_blank href="/item/%E6%AF%9B%E6%B3%BD%E4%B8%9C/113835" data-lemmaid="113835">毛泽东</a>、<a target=_blank href="/item/%E5%91%A8%E6%81%A9%E6%9D%A5">周恩来</a>、<a target=_blank href="/item/%E5%88%98%E5%B0%91%E5%A5%87">刘少奇</a>、<a target=_blank href="/item/%E6%9C%B1%E5%BE%B7">朱德</a>、<a target=_blank href="/item/%E6%9E%97%E5%BD%AA">林彪</a>、<a target=_blank href="/item/%E4%BB%BB%E5%BC%BC%E6%97%B6/34637" data-lemmaid="34637">任弼时</a>、<a target=_blank href="/item/%E9%82%93%E5%B0%8F%E5%B9%B3/116181" data-lemmaid="116181">邓小平</a>、<a target=_blank href="/item/%E9%99%88%E4%BA%91/26156" data-lemmaid="26156">陈云</a>、<a target=_blank href="/item/%E8%91%A3%E5%BF%85%E6%AD%A6">董必武</a>、<a target=_blank href="/item/%E5%AE%8B%E5%BA%86%E9%BE%84">宋庆龄</a>、<a target=_blank href="/item/%E5%BD%AD%E5%BE%B7%E6%80%80">彭德怀</a>、<a target=_blank href="/item/%E5%88%98%E4%BC%AF%E6%89%BF">刘伯承</a>、<a target=_blank href="/item/%E8%B4%BA%E9%BE%99">贺龙</a>、<a target=_blank href="/item/%E9%99%88%E6%AF%85/22586" data-lemmaid="22586">陈毅</a>、<a target=_blank href="/item/%E7%BD%97%E8%8D%A3%E6%A1%93">罗荣桓</a>、<a target=_blank href="/item/%E5%BE%90%E5%90%91%E5%89%8D">徐向前</a>、<a target=_blank href="/item/%E8%81%82%E8%8D%A3%E8%87%BB/116123" data-lemmaid="116123">聂荣臻</a>、<a target=_blank href="/item/%E5%8F%B6%E5%89%91%E8%8B%B1">叶剑英</a>等开国元勋伟大光辉的一生。</div>'
+# page = BeautifulSoup(str,'lxml')
+# hrefs = page.find_all('a')
+# ss = []
+# for item in hrefs:
+#     ss.append('baike.baidu.com' + item['href'])
+# print((ss))
+
+import time
+print(time.strftime('%H-%M-%S',time.localtime(time.time())))
+

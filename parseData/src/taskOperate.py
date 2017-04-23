@@ -42,11 +42,11 @@ class Operator:
             time.sleep(4)
             status = self.getTaskPeriodStatus(task_id, task_period)
             i = 0
-            while (status == '0') and (i < 10):
+            while (status == '0') and (i < 15):
                 time.sleep(4)
                 status = self.getTaskPeriodStatus(task_id, task_period)
                 i = i+1
-            if(i == 10 or status != '1'):
+            if(i == 15 or status != '1'):
                 print('抓取数据失败!!!')
                 return None
             elif(status == '1'):
@@ -55,7 +55,7 @@ class Operator:
     
     def getTaskData(self,key='',task_id='1491037886',task_period='20170324_0035',data_name='',pgfrom='',pgsize=''):
         url = "http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=%s&task_id=%s&task_period=%s&data_name=%s&pgfrom=%s&pgsize=%s"%(key,task_id,task_period,data_name,pgfrom,pgsize)
-        print(url)
+#         print(url)
         data = requests.get(url).json()
         if len(data['data']):
             print('获取数据成功')

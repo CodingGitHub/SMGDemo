@@ -52,7 +52,7 @@ class Parse:
 #         self.f.write('\n\n\n\n\n\n')
         self.closeConnection()
 #     def createConnection(self,host='localhost',user='root',passwd='',db='media_demo',port=3306):
-    def createConnection(self,host='localhost',user='media_demo_user',passwd='6yhnMJU&',db='media_demo_test',port=20002):
+    def createConnection(self,host='120.27.27.83',user='media_demo_user',passwd='6yhnMJU&',db='media_demo_test',port=20002):
         try:
             self.conn = pymysql.connect(host,user,passwd,db,port,use_unicode=True, charset="utf8")
 #             self.conn.set_character_set('utf8')
@@ -84,14 +84,21 @@ class Parse:
     def parseTaskAData(self,key='',task_id='1491037886',task_period='20170413_1447',data_name='',pgfrom='',pgsize=''):
         url = "http://120.27.27.83:8081/api/data/getspiderconsolidateddata?key=%s&task_id=%s&task_period=%s&data_name=%s&pgfrom=%s&pgsize=%s"%(key,task_id,task_period,data_name,pgfrom,pgsize)
 #         print(url)
-        data = self.getDataFromCaiYunAPI(url)
+        data = []
+        with open('urllist.txt','r',encoding = 'utf-8') as f:
+            listurl = f.readlines()
+            for line in listurl:
+                line=line.strip('\n')
+                data.append(line)
+            print(data)
+        #data = ['baike.baidu.com/item/%E6%AF%9B%E6%B3%BD%E4%B8%9C/113835', 'baike.baidu.com/item/%E5%91%A8%E6%81%A9%E6%9D%A5', 'baike.baidu.com/item/%E5%88%98%E5%B0%91%E5%A5%87', 'baike.baidu.com/item/%E6%9C%B1%E5%BE%B7', 'baike.baidu.com/item/%E6%9E%97%E5%BD%AA', 'baike.baidu.com/item/%E4%BB%BB%E5%BC%BC%E6%97%B6/34637', 'baike.baidu.com/item/%E9%82%93%E5%B0%8F%E5%B9%B3/116181', 'baike.baidu.com/item/%E9%99%88%E4%BA%91/26156', 'baike.baidu.com/item/%E8%91%A3%E5%BF%85%E6%AD%A6', 'baike.baidu.com/item/%E5%AE%8B%E5%BA%86%E9%BE%84', 'baike.baidu.com/item/%E5%BD%AD%E5%BE%B7%E6%80%80', 'baike.baidu.com/item/%E5%88%98%E4%BC%AF%E6%89%BF', 'baike.baidu.com/item/%E8%B4%BA%E9%BE%99', 'baike.baidu.com/item/%E9%99%88%E6%AF%85/22586', 'baike.baidu.com/item/%E7%BD%97%E8%8D%A3%E6%A1%93', 'baike.baidu.com/item/%E5%BE%90%E5%90%91%E5%89%8D', 'baike.baidu.com/item/%E8%81%82%E8%8D%A3%E8%87%BB/116123', 'baike.baidu.com/item/%E5%8F%B6%E5%89%91%E8%8B%B1']
         peopledict = {}
-        for index,d in enumerate(data['data']):
-            peopledict['title'] = eval(d['data_json'])['title']
-            peopledict['url'] = 'https://baike.baidu.com' + eval(d['data_json'])['url']
-            print(index,peopledict)
+        for index,d in enumerate(data):
+#             peopledict['title'] = eval(d['data_json'])['title']
+#             peopledict['url'] = 'https://baike.baidu.com' + eval(d['data_json'])['url']
+            print(index,d)
             urllist = []
-            urllist.append(peopledict['url'])
+            urllist.append(d)
             peopledata = self.execuTaskB(urllist = urllist)
             self.parseEntitydataFromTaskB(peopledata, level=1)
 
@@ -176,6 +183,7 @@ class Parse:
                 #子链接
                 if jsondata['data_name'] == 'entity_list':
                     seed_url = jsondata['_SEED_URL']
+                    
                     if seed_url not in entityInfoDict:
                         entityInfoDict[seed_url] = {}
 #                         entityInfoDict[seed_url]['entity_list'] = list()
@@ -187,6 +195,7 @@ class Parse:
                     entityInfoDict[seed_url]['entity_list'] = entiList
 #             print(entityInfoDict)
 
+                
                 #家谱
                 if jsondata['data_name'] == 'people_relation':
                     seed_url = jsondata['_SEED_URL']
@@ -467,6 +476,7 @@ class Parse:
             
         
 #         self.savedUrlSet.add(person.getUrl())
+        
     
     def extractInstitution(self,entityInfo):
         institution = Institution()

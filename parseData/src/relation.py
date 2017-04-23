@@ -9,6 +9,8 @@ class Relation:
     id2 =  None
     type = None
     name = None
+    describe = None
+    prtype = None
     strength = None
     
     def setId(self,i):
@@ -35,6 +37,16 @@ class Relation:
         self.name = name
     def getName(self):
         return self.name
+    
+    def setDescribe(self,describe):
+        self.describe = describe
+    def getDescribe(self):
+        return self.describe
+    
+    def setPrtype(self,prtype):
+        self.prtype = prtype
+    def getPrtype(self):
+        return self.prtype
     
     def setStrength(self,strength):
         self.strength = strength
